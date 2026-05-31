@@ -12,7 +12,7 @@ class HiveService {
   //init
   Future<void> init() async{
     final directory = await getApplicationDocumentsDirectory();
-    final path = '$directory.path/${HiveTableConstant.dbName}';
+    final path = '${directory.path}/${HiveTableConstant.dbName}';
     Hive.init(path);
     _registerAdapter();
     await openBoxes();
@@ -23,7 +23,7 @@ class HiveService {
     final box = await Hive.openBox<BatchHiveModel>(
       HiveTableConstant.batchTable,
     );
-    if(box.isEmpty) return;
+    if(box.isNotEmpty) return;
     final dummyBatches = [
       BatchHiveModel(batchName: "35-A"),
       BatchHiveModel(batchName: "35-B"),
