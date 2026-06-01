@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lost_n_found/core/widgets/utils/snackbar_utils.dart';
+import 'package:lost_n_found/features/auth/presentation/state/auth_state.dart';
+import 'package:lost_n_found/features/auth/presentation/view_model/auth_view_model.dart';
 import '../../../../app/routes/app_routes.dart';
 import '../../../../app/theme/app_colors.dart';
 
@@ -31,20 +33,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   Future<void> _handleLogin() async {
     if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
-
-      // TODO: Implement login logic
-      await Future.delayed(const Duration(seconds: 2));
-
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-        // Navigate to dashboard
-        AppRoutes.pushReplacement(context, const DashboardPage());
-      }
+      await ref.read(authViewModelProvider.notifier).login(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim()
+      );
     }
   }
 
@@ -72,6 +64,18 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final textColor = Theme.of(context).textTheme.bodyLarge?.color ?? AppColors.textDark;
     final secondaryTextColor = Theme.of(context).textTheme.bodySmall?.color ?? AppColors.textMuted;
+
+    final authState = ref.watch(authViewModelProvider);
+  
+    ref.listen<AuthState>(authViewModelProvider, (previous, next){
+          if(next.status == AuthStatus.authenenticates){
+             AppRoutes.pushReplacement(context, DashboardPage());
+          }else if(next.status == AuthStatus.error && next.errorMessage != null){
+            //error
+            SnackbarUtils.showError(context, next.errorMessage!);
+          }
+    });
+
 
     return Scaffold(
       body: SafeArea(
@@ -202,7 +206,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: _isLoading
+                    child: authState.status == AuthStatus.loading
                         ? const SizedBox(
                             width: 24,
                             height: 24,
