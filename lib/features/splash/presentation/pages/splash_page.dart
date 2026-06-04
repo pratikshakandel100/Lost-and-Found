@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:lost_n_found/core/services/storage/user_session_service.dart';
+import 'package:lost_n_found/features/dashboard/presentation/pages/dashboard_page.dart';
 import '../../../../app/routes/app_routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/theme_extensions.dart';
@@ -84,7 +86,15 @@ class _SplashPageState extends ConsumerState<SplashPage>
   Future<void> _navigateToNext() async {
     await Future.delayed(const Duration(seconds: 3));
     if (!mounted) return;
-    AppRoutes.pushReplacement(context, const OnboardingPage());
+    //check if user is already logiin or not
+    final userSessionService = ref.read(UserSessionServiceProvider);
+    final isLoggedIn = userSessionService.isLoggedIn();
+
+    if(isLoggedIn){
+    AppRoutes.pushReplacement(context, const DashboardPage());
+    } else{
+      AppRoutes.pushReplacement(context, const OnboardingPage());
+    }
   }
 
   @override
